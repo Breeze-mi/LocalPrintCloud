@@ -77,7 +77,16 @@ public partial class MainViewModel : ObservableObject
     {
         _apiClient = apiClient;
         UpdateApiBaseUrl();
-        StartAutoRefresh();
+        
+        // 延迟启动自动刷新，避免阻塞UI初始化
+        Task.Run(async () =>
+        {
+            await Task.Delay(1000); // 等待1秒让UI完全加载
+            await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                StartAutoRefresh();
+            });
+        });
     }
 
     partial void OnServerUrlChanged(string value)
@@ -216,19 +225,39 @@ public partial class MainViewModel : ObservableObject
             {
                 Jobs.Add(job);
             }
+            
             if (Jobs.Count > 0)
             {
                 StatusMessage = $"已刷新任务列表 ({Jobs.Count} 个任务)";
             }
+            else
+            {
+                StatusMessage = "暂无打印任务";
+            }
         }
-        catch
+        catch (Exception ex)
         {
-            // 静默失败，不显示错误
+            // 如果是首次加载失败，显示提示
+            if (Jobs.Count == 0)
+            {
+                StatusMessage = "无法连接到服务器，请检查服务端是否运行";
+            }
         }
     }
 
     private void StartAutoRefresh()
     {
+        // 首次加载任务列表（不阻塞UI）
+        Task.Run(async () =>
+        {
+            await Task.Delay(500); // 短暂延迟确保UI已加载
+            await Application.Current.Dispatcher.InvokeAsync(async () =>
+            {
+                await RefreshJobs();
+            });
+        });
+        
+        // 启动定时器
         _refreshTimer = new System.Timers.Timer(10000); // 每 10 秒刷新一次
         _refreshTimer.Elapsed += async (s, e) =>
         {
@@ -236,11 +265,7 @@ public partial class MainViewModel : ObservableObject
             {
                 await Application.Current.Dispatcher.InvokeAsync(async () =>
                 {
-                    // 只有在有任务时才自动刷新
-                    if (Jobs.Count > 0)
-                    {
-                        await RefreshJobs();
-                    }
+                    await RefreshJobs();
                 });
             }
             catch

@@ -9,37 +9,120 @@
         Background="#F5F5F5">
     
     <Window.Resources>
+        <!-- 颜色定义 -->
+        <SolidColorBrush x:Key="PrimaryColor" Color="#2196F3"/>
+        <SolidColorBrush x:Key="PrimaryDarkColor" Color="#1976D2"/>
+        <SolidColorBrush x:Key="AccentColor" Color="#4CAF50"/>
+        <SolidColorBrush x:Key="AccentDarkColor" Color="#388E3C"/>
+        <SolidColorBrush x:Key="BackgroundColor" Color="#F5F5F5"/>
+        <SolidColorBrush x:Key="CardColor" Color="White"/>
+        <SolidColorBrush x:Key="TextPrimaryColor" Color="#333333"/>
+        <SolidColorBrush x:Key="TextSecondaryColor" Color="#666666"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#DDDDDD"/>
+        
+        <!-- 卡片样式 -->
         <Style x:Key="CardStyle" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="Padding" Value="20"/>
-            <Setter Property="Margin" Value="0,0,0,15"/>
+            <Setter Property="Background" Value="{StaticResource CardColor}"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="24"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
             <Setter Property="Effect">
                 <Setter.Value>
-                    <DropShadowEffect Color="#CCCCCC" BlurRadius="12" ShadowDepth="3" Opacity="0.3"/>
+                    <DropShadowEffect Color="#CCCCCC" BlurRadius="15" ShadowDepth="3" Opacity="0.25"/>
                 </Setter.Value>
             </Setter>
         </Style>
         
+        <!-- 标题样式 -->
         <Style x:Key="TitleStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontSize" Value="18"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="#333333"/>
-            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryColor}"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
         </Style>
         
+        <!-- 标签样式 -->
         <Style x:Key="LabelStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Foreground" Value="#555555"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryColor}"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
         
+        <!-- 输入框样式 -->
+        <Style x:Key="InputStyle" TargetType="TextBox">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="White"/>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource PrimaryColor}"/>
+                    <Setter Property="BorderThickness" Value="2"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <!-- 下拉框样式 -->
+        <Style x:Key="ComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="White"/>
+        </Style>
+        
+        <!-- 主按钮样式 -->
         <Style x:Key="PrimaryButton" TargetType="Button">
-            <Setter Property="Background" Value="#2196F3"/>
+            <Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="Padding" Value="24,12"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="8" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource PrimaryDarkColor}"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#CCCCCC"/>
+                    <Setter Property="Cursor" Value="Arrow"/>
+                    <Setter Property="Opacity" Value="0.6"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <!-- 成功按钮样式 -->
+        <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="{StaticResource AccentColor}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource AccentDarkColor}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <!-- 小按钮样式 -->
+        <Style x:Key="SmallButton" TargetType="Button">
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
@@ -53,30 +136,20 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#1976D2"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="#CCCCCC"/>
-                    <Setter Property="Cursor" Value="Arrow"/>
-                </Trigger>
-            </Style.Triggers>
         </Style>
         
-        <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
-            <Setter Property="Background" Value="#4CAF50"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#388E3C"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-        
+        <!-- 状态徽章样式 -->
         <Style x:Key="StatusBadge" TargetType="Border">
-            <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="12,6"/>
             <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+        
+        <!-- CheckBox 样式 -->
+        <Style x:Key="ModernCheckBox" TargetType="CheckBox">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryColor}"/>
+            <Setter Property="Margin" Value="0,8"/>
         </Style>
     </Window.Resources>
     
@@ -114,23 +187,23 @@
                         <StackPanel>
                             <TextBlock Text="🌐 服务器设置" Style="{StaticResource TitleStyle}"/>
                             <TextBox Text="{Binding ServerUrl, UpdateSourceTrigger=PropertyChanged}" 
-                                     FontSize="14" Padding="10" BorderBrush="#DDDDDD" BorderThickness="1"/>
+                                     Style="{StaticResource InputStyle}"/>
                         </StackPanel>
                     </Border>
 
                     <!-- 打印机选择 -->
                     <Border Style="{StaticResource CardStyle}">
                         <StackPanel>
-                            <Grid Margin="0,0,0,10">
+                            <Grid Margin="0,0,0,12">
                                 <TextBlock Text="🖨️ 打印机" Style="{StaticResource TitleStyle}" Margin="0"/>
                                 <Button Content="刷新" Command="{Binding GetPrintersCommand}" 
-                                        HorizontalAlignment="Right" Padding="12,6" 
-                                        Background="#FF9800" Foreground="White" BorderThickness="0" 
-                                        Cursor="Hand" FontSize="13" FontWeight="SemiBold"/>
+                                        HorizontalAlignment="Right" 
+                                        Style="{StaticResource SmallButton}"
+                                        Background="#FF9800"/>
                             </Grid>
                             <ComboBox ItemsSource="{Binding Printers}"
                                       SelectedItem="{Binding SelectedPrinter}"
-                                      FontSize="14" Padding="10" Height="40"/>
+                                      Style="{StaticResource ComboBoxStyle}"/>
                         </StackPanel>
                     </Border>
 
@@ -139,11 +212,11 @@
                         <StackPanel>
                             <TextBlock Text="📄 文件" Style="{StaticResource TitleStyle}"/>
                             <Button Content="📁 选择文件" Command="{Binding SelectFileCommand}" 
-                                    Padding="15,10" Background="#9C27B0" 
-                                    Foreground="White" BorderThickness="0" Cursor="Hand" 
-                                    FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Stretch"/>
+                                    Style="{StaticResource PrimaryButton}"
+                                    Background="#9C27B0" 
+                                    HorizontalAlignment="Stretch" Height="48"/>
                             <TextBlock Text="{Binding SelectedFileName}" 
-                                       Margin="0,10,0,0" TextWrapping="Wrap"
+                                       Margin="0,12,0,0" TextWrapping="Wrap"
                                        FontSize="13" Foreground="#666666" TextAlignment="Center"/>
                         </StackPanel>
                     </Border>
@@ -172,28 +245,28 @@
 
                                 <!-- 打印份数 -->
                                 <TextBlock Text="打印份数:" Grid.Row="0" Grid.Column="0" 
-                                           Style="{StaticResource LabelStyle}" Margin="0,8"/>
-                                <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1" Margin="10,8">
-                                    <TextBox Text="{Binding Copies}" Width="80" Padding="8" FontSize="14"
-                                             HorizontalContentAlignment="Center" Height="36"/>
-                                    <TextBlock Text="份" Style="{StaticResource LabelStyle}" Margin="8,0,0,0"/>
+                                           Style="{StaticResource LabelStyle}" Margin="0,10"/>
+                                <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1" Margin="10,10">
+                                    <TextBox Text="{Binding Copies}" Width="90" Style="{StaticResource InputStyle}"
+                                             HorizontalContentAlignment="Center"/>
+                                    <TextBlock Text="份" Style="{StaticResource LabelStyle}" Margin="12,0,0,0"/>
                                 </StackPanel>
 
                                 <!-- 页码范围 -->
                                 <TextBlock Text="页码范围:" Grid.Row="1" Grid.Column="0" 
-                                           Style="{StaticResource LabelStyle}" Margin="0,8"/>
-                                <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,8">
-                                    <ComboBox SelectedIndex="{Binding PageRangeMode}" Padding="8" FontSize="14" Height="36">
+                                           Style="{StaticResource LabelStyle}" Margin="0,10"/>
+                                <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,10">
+                                    <ComboBox SelectedIndex="{Binding PageRangeMode}" Style="{StaticResource ComboBoxStyle}">
                                         <ComboBoxItem Content="全部"/>
                                         <ComboBoxItem Content="自定义"/>
                                     </ComboBox>
-                                    <Grid Margin="0,5,0,0">
-                                        <TextBox Text="{Binding CustomPageRange}" Padding="8" FontSize="13" Height="36"
+                                    <Grid Margin="0,8,0,0">
+                                        <TextBox Text="{Binding CustomPageRange}" Style="{StaticResource InputStyle}"
                                                  IsEnabled="{Binding IsCustomPageRange}"/>
                                         <TextBlock Text="例如: 1-5,8,11-13" 
                                                    Foreground="#999999" 
                                                    FontSize="13"
-                                                   Padding="10,10,0,0"
+                                                   Padding="14,12,0,0"
                                                    IsHitTestVisible="False">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
@@ -214,8 +287,8 @@
 
                                 <!-- 双面打印 -->
                                 <TextBlock Text="双面打印:" Grid.Row="2" Grid.Column="0" 
-                                           Style="{StaticResource LabelStyle}" Margin="0,8"/>
-                                <ComboBox Grid.Row="2" Grid.Column="1" Margin="10,8" Padding="8" FontSize="14" Height="36"
+                                           Style="{StaticResource LabelStyle}" Margin="0,10"/>
+                                <ComboBox Grid.Row="2" Grid.Column="1" Margin="10,10" Style="{StaticResource ComboBoxStyle}"
                                           SelectedIndex="{Binding DuplexMode}">
                                     <ComboBoxItem Content="单面"/>
                                     <ComboBoxItem Content="双面 (长边翻转)"/>
@@ -224,8 +297,8 @@
 
                                 <!-- 颜色模式 -->
                                 <TextBlock Text="颜色模式:" Grid.Row="3" Grid.Column="0" 
-                                           Style="{StaticResource LabelStyle}" Margin="0,8"/>
-                                <ComboBox Grid.Row="3" Grid.Column="1" Margin="10,8" Padding="8" FontSize="14" Height="36"
+                                           Style="{StaticResource LabelStyle}" Margin="0,10"/>
+                                <ComboBox Grid.Row="3" Grid.Column="1" Margin="10,10" Style="{StaticResource ComboBoxStyle}"
                                           SelectedIndex="{Binding ColorMode}">
                                     <ComboBoxItem Content="黑白"/>
                                     <ComboBoxItem Content="彩色"/>
@@ -233,8 +306,8 @@
 
                                 <!-- 纸张大小 -->
                                 <TextBlock Text="纸张大小:" Grid.Row="4" Grid.Column="0" 
-                                           Style="{StaticResource LabelStyle}" Margin="0,8"/>
-                                <ComboBox Grid.Row="4" Grid.Column="1" Margin="10,8" Padding="8" FontSize="14" Height="36"
+                                           Style="{StaticResource LabelStyle}" Margin="0,10"/>
+                                <ComboBox Grid.Row="4" Grid.Column="1" Margin="10,10" Style="{StaticResource ComboBoxStyle}"
                                           SelectedIndex="{Binding PaperSizeMode}">
                                     <ComboBoxItem Content="A4 (210 × 297 mm)"/>
                                     <ComboBoxItem Content="A3 (297 × 420 mm)"/>
@@ -245,8 +318,8 @@
 
                                 <!-- 打印方向 -->
                                 <TextBlock Text="打印方向:" Grid.Row="5" Grid.Column="0" 
-                                           Style="{StaticResource LabelStyle}" Margin="0,8"/>
-                                <ComboBox Grid.Row="5" Grid.Column="1" Margin="10,8" Padding="8" FontSize="14" Height="36"
+                                           Style="{StaticResource LabelStyle}" Margin="0,10"/>
+                                <ComboBox Grid.Row="5" Grid.Column="1" Margin="10,10" Style="{StaticResource ComboBoxStyle}"
                                           SelectedIndex="{Binding OrientationMode}">
                                     <ComboBoxItem Content="纵向 (Portrait)"/>
                                     <ComboBoxItem Content="横向 (Landscape)"/>
@@ -254,28 +327,30 @@
                             </Grid>
 
                             <!-- 高级选项 -->
-                            <Expander Header="🔧 高级选项" Margin="0,15,0,0" FontWeight="SemiBold" FontSize="14">
-                                <StackPanel Margin="0,10,0,0">
+                            <Expander Header="🔧 高级选项" Margin="0,20,0,0" FontWeight="SemiBold" FontSize="15">
+                                <StackPanel Margin="0,12,0,0">
                                     <CheckBox Content="适应页面大小" IsChecked="{Binding FitToPage}" 
-                                              Margin="0,8" FontSize="14"/>
+                                              Style="{StaticResource ModernCheckBox}"/>
                                     <CheckBox Content="自动旋转和居中" IsChecked="{Binding AutoRotateAndCenter}" 
-                                              Margin="0,8" FontSize="14"/>
+                                              Style="{StaticResource ModernCheckBox}"/>
                                     
-                                    <Grid Margin="0,10,0,0">
+                                    <Grid Margin="0,12,0,0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="缩放比例:" VerticalAlignment="Center" 
-                                                   Margin="0,0,15,0" FontSize="14"/>
+                                                   Margin="0,0,16,0" FontSize="14" FontWeight="Medium"/>
                                         <StackPanel Orientation="Horizontal" Grid.Column="1">
-                                            <Slider Width="200" Minimum="50" Maximum="200" 
+                                            <Slider Width="220" Minimum="50" Maximum="200" 
                                                     Value="{Binding ScalePercent}" 
                                                     TickFrequency="10" IsSnapToTickEnabled="True"
-                                                    VerticalAlignment="Center" Height="30"/>
-                                            <TextBlock Text="{Binding ScalePercent, StringFormat={}{0}%}" 
-                                                       VerticalAlignment="Center" Margin="15,0,0,0" 
-                                                       FontWeight="Bold" FontSize="16" Foreground="#2196F3"/>
+                                                    VerticalAlignment="Center" Height="32"/>
+                                            <Border Background="#E3F2FD" CornerRadius="6" Padding="12,6" Margin="16,0,0,0">
+                                                <TextBlock Text="{Binding ScalePercent, StringFormat={}{0}%}" 
+                                                           VerticalAlignment="Center"
+                                                           FontWeight="Bold" FontSize="16" Foreground="#1976D2"/>
+                                            </Border>
                                         </StackPanel>
                                     </Grid>
                                 </StackPanel>
@@ -283,23 +358,25 @@
 
                             <!-- 打印按钮 -->
                             <Button Content="🖨️ 开始打印" Command="{Binding UploadAndPrintCommand}" 
-                                    Style="{StaticResource SecondaryButton}" 
-                                    Margin="0,20,0,0" Height="50" FontSize="16"/>
+                                    Style="{StaticResource SuccessButton}" 
+                                    Margin="0,24,0,0" Height="56" FontSize="17"/>
                         </StackPanel>
                     </Border>
 
                     <!-- 打印任务 -->
                     <Border Style="{StaticResource CardStyle}">
                         <StackPanel>
-                            <Grid Margin="0,0,0,10">
+                            <Grid Margin="0,0,0,12">
                                 <TextBlock Text="📋 打印任务" Style="{StaticResource TitleStyle}" Margin="0"/>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                    <TextBlock Text="{Binding Jobs.Count, StringFormat=共 {0} 个任务}" 
-                                               VerticalAlignment="Center" Margin="0,0,10,0" 
-                                               FontSize="13" Foreground="#666666"/>
+                                    <Border Background="#E8F5E9" CornerRadius="6" Padding="10,6" Margin="0,0,12,0">
+                                        <TextBlock Text="{Binding Jobs.Count, StringFormat=共 {0} 个任务}" 
+                                                   VerticalAlignment="Center"
+                                                   FontSize="13" FontWeight="SemiBold" Foreground="#388E3C"/>
+                                    </Border>
                                     <Button Content="🔄 刷新" Command="{Binding RefreshJobsCommand}" 
-                                            Padding="12,6" Background="#607D8B" Foreground="White" 
-                                            BorderThickness="0" Cursor="Hand" FontSize="13" FontWeight="SemiBold"/>
+                                            Style="{StaticResource SmallButton}"
+                                            Background="#607D8B"/>
                                 </StackPanel>
                             </Grid>
                             
