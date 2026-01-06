@@ -1,0 +1,162 @@
+{
+  "info": {
+    "name": "PrintServer API",
+    "description": "Windows 局域网共享打印系统 API 测试集合",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "apiKey",
+      "value": "dev-token-123",
+      "type": "string"
+    },
+    {
+      "key": "fileId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "jobId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. 获取打印机列表",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/printers",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "printers"]
+        },
+        "description": "获取服务端所有可用的打印机列表"
+      },
+      "response": []
+    },
+    {
+      "name": "2. 上传文件",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('fileId', jsonData.fileId);",
+              "    console.log('FileId saved: ' + jsonData.fileId);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-Api-Key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": []
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/upload",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "upload"]
+        },
+        "description": "上传文件到服务端，支持 PDF, PNG, JPG, DOCX, XLSX 等格式"
+      },
+      "response": []
+    },
+    {
+      "name": "3. 发起打印",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('jobId', jsonData.jobId);",
+              "    console.log('JobId saved: ' + jsonData.jobId);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-Api-Key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fileId\": \"{{fileId}}\",\n  \"printerName\": \"Microsoft Print to PDF\",\n  \"copies\": 1,\n  \"options\": {\n    \"duplex\": false,\n    \"color\": true\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/print",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "print"]
+        },
+        "description": "发起打印任务，需要先上传文件获取 fileId"
+      },
+      "response": []
+    },
+    {
+      "name": "4. 查询任务状态",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/status/{{jobId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "status", "{{jobId}}"]
+        },
+        "description": "根据 jobId 查询打印任务的当前状态"
+      },
+      "response": []
+    },
+    {
+      "name": "5. 获取所有任务",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/jobs",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "jobs"]
+        },
+        "description": "获取所有打印任务列表"
+      },
+      "response": []
+    }
+  ]
+}
