@@ -54,6 +54,19 @@ public class PrintOptions
     /// 是否适应页面大小
     /// </summary>
     public bool FitToPage { get; set; } = false;
+
+    /// <summary>
+    /// 逐份打印（每份完整后再打印下一份）
+    /// 重要：自助打印机的核心功能！
+    /// true: 打印顺序为 1,2,3,1,2,3（推荐）
+    /// false: 打印顺序为 1,1,2,2,3,3
+    /// </summary>
+    public bool Collate { get; set; } = true;
+
+    /// <summary>
+    /// 反片打印（从最后一页开始打印）
+    /// </summary>
+    public bool ReverseOrder { get; set; } = false;
 }
 
 /// <summary>

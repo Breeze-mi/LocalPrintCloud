@@ -98,7 +98,7 @@ public class PrinterService : IPrinterService
             {
                 ".pdf" => PrintPdf(filePath, printerName, copies, options),
                 ".png" or ".jpg" or ".jpeg" or ".bmp" => PrintImage(filePath, printerName, copies, options),
-                ".docx" or ".doc" or ".xlsx" or ".xls" => PrintOfficeFile(filePath, printerName, options),
+                ".docx" or ".doc" or ".xlsx" or ".xls" => PrintOfficeFile(filePath, printerName, copies, options),
                 ".txt" => PrintTextFile(filePath, printerName, copies, options),
                 _ => throw new NotSupportedException($"不支持的文件格式: {extension}")
             };
@@ -122,24 +122,71 @@ public class PrinterService : IPrinterService
     {
         try
         {
-            // 使用系统默认 PDF 阅读器打印
-            var startInfo = new ProcessStartInfo
+            var collate = options?.Collate ?? true;
+            
+            // PDF 使用系统默认阅读器打印
+            // 注意：Process.Start 的 "print" 动词无法直接控制 Collate
+            // 通过循环打印实现逐份打印效果
+            
+            if (collate)
             {
-                FileName = filePath,
-                Verb = "print",
-                CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
-                UseShellExecute = true
-            };
+                // 逐份打印：每次打印完整文档
+                _logger.LogInformation($"PDF 逐份打印: {filePath}, 份数: {copies}");
+                for (int i = 0; i < copies; i++)
+                {
+                    _logger.LogInformation($"打印第 {i + 1}/{copies} 份");
+                    
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = filePath,
+                        Verb = "print",
+                        CreateNoWindow = true,
+                        WindowStyle = ProcessWindowStyle.Hidden,
+                        UseShellExecute = true
+                    };
 
-            using var process = Process.Start(startInfo);
-            if (process != null)
-            {
-                // 等待打印任务提交
-                Thread.Sleep(3000);
-                return true;
+                    using var process = Process.Start(startInfo);
+                    if (process == null)
+                    {
+                        _logger.LogError("启动打印进程失败");
+                        return false;
+                    }
+                    
+                    // 等待打印任务提交
+                    Thread.Sleep(3000);
+                    
+                    // 多份之间延迟，避免打印队列混乱
+                    if (i < copies - 1)
+                    {
+                        Thread.Sleep(2000);
+                    }
+                }
             }
-            return false;
+            else
+            {
+                // 不逐份打印：一次性提交（依赖 PDF 阅读器）
+                _logger.LogInformation($"PDF 不逐份打印: {filePath}, 份数: {copies}");
+                _logger.LogWarning("PDF 不逐份打印模式依赖于 PDF 阅读器的默认行为");
+                
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = filePath,
+                    Verb = "print",
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    UseShellExecute = true
+                };
+
+                using var process = Process.Start(startInfo);
+                if (process == null)
+                {
+                    return false;
+                }
+                
+                Thread.Sleep(3000);
+            }
+            
+            return true;
         }
         catch (Exception ex)
         {
@@ -155,7 +202,11 @@ public class PrinterService : IPrinterService
             using var image = Image.FromFile(filePath);
             var printDocument = new PrintDocument
             {
-                PrinterSettings = { PrinterName = printerName, Copies = (short)copies }
+                PrinterSettings = { 
+                    PrinterName = printerName, 
+                    Copies = (short)copies,
+                    Collate = options?.Collate ?? true  // 逐份打印（默认开启）
+                }
             };
 
             // 应用打印选项
@@ -214,6 +265,7 @@ public class PrinterService : IPrinterService
             };
 
             printDocument.Print();
+            _logger.LogInformation($"图片打印完成: {filePath}, 份数: {copies}, 逐份打印: {options?.Collate ?? true}");
             return true;
         }
         catch (Exception ex)
@@ -223,27 +275,75 @@ public class PrinterService : IPrinterService
         }
     }
 
-    private bool PrintOfficeFile(string filePath, string printerName, Models.PrintOptions? options)
+    private bool PrintOfficeFile(string filePath, string printerName, int copies, Models.PrintOptions? options)
     {
         try
         {
-            // 使用 Windows 默认程序打印
-            var startInfo = new ProcessStartInfo
+            var collate = options?.Collate ?? true;
+            
+            // Office 文件使用 Windows 默认程序打印
+            // 注意：Process.Start 的 "print" 动词无法直接控制 Collate
+            // 通过循环打印实现逐份打印效果
+            
+            if (collate)
             {
-                FileName = filePath,
-                Verb = "print",
-                CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
-                UseShellExecute = true
-            };
+                // 逐份打印：每次打印完整文档
+                _logger.LogInformation($"Office 逐份打印: {filePath}, 份数: {copies}");
+                for (int i = 0; i < copies; i++)
+                {
+                    _logger.LogInformation($"打印第 {i + 1}/{copies} 份");
+                    
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = filePath,
+                        Verb = "print",
+                        CreateNoWindow = true,
+                        WindowStyle = ProcessWindowStyle.Hidden,
+                        UseShellExecute = true
+                    };
 
-            using var process = Process.Start(startInfo);
-            if (process != null)
-            {
-                Thread.Sleep(5000); // Office 文件需要更长时间
-                return true;
+                    using var process = Process.Start(startInfo);
+                    if (process == null)
+                    {
+                        _logger.LogError("启动打印进程失败");
+                        return false;
+                    }
+                    
+                    // Office 文件需要更长时间
+                    Thread.Sleep(5000);
+                    
+                    // 多份之间延迟，避免打印队列混乱
+                    if (i < copies - 1)
+                    {
+                        Thread.Sleep(3000);
+                    }
+                }
             }
-            return false;
+            else
+            {
+                // 不逐份打印：一次性提交（依赖 Office 的默认行为）
+                _logger.LogInformation($"Office 不逐份打印: {filePath}, 份数: {copies}");
+                _logger.LogWarning("Office 不逐份打印模式依赖于 Office 的默认行为");
+                
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = filePath,
+                    Verb = "print",
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    UseShellExecute = true
+                };
+
+                using var process = Process.Start(startInfo);
+                if (process == null)
+                {
+                    return false;
+                }
+                
+                Thread.Sleep(5000);
+            }
+            
+            return true;
         }
         catch (Exception ex)
         {
@@ -259,7 +359,11 @@ public class PrinterService : IPrinterService
             var content = File.ReadAllText(filePath);
             var printDocument = new PrintDocument
             {
-                PrinterSettings = { PrinterName = printerName, Copies = (short)copies }
+                PrinterSettings = { 
+                    PrinterName = printerName, 
+                    Copies = (short)copies,
+                    Collate = options?.Collate ?? true  // 逐份打印（默认开启）
+                }
             };
 
             // 应用打印选项
@@ -278,6 +382,7 @@ public class PrinterService : IPrinterService
             };
 
             printDocument.Print();
+            _logger.LogInformation($"文本打印完成: {filePath}, 份数: {copies}, 逐份打印: {options?.Collate ?? true}");
             return true;
         }
         catch (Exception ex)

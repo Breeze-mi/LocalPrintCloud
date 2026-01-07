@@ -1,15 +1,60 @@
-namespace PrintClient.Models;
+using System;
+using System.Collections.Generic;
+
+namespace PrintClient.Avalonia.Models;
 
 public class PrintJob
 {
     public string JobId { get; set; } = string.Empty;
-    public string FileId { get; set; } = string.Empty;
+    public List<string> FileIds { get; set; } = new();
     public string FileName { get; set; } = string.Empty;
     public string PrinterName { get; set; } = string.Empty;
     public int Copies { get; set; } = 1;
-    public string Status { get; set; } = string.Empty;
+    public PrintJobStatus Status { get; set; } = PrintJobStatus.Pending;
     public string Message { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
+    public PrintStatistics? Statistics { get; set; }
+    
+    // 显示属性
+    public string StatusDisplay => Status switch
+    {
+        PrintJobStatus.Pending => "⏳ 等待中",
+        PrintJobStatus.Printing => "🖨️ 打印中",
+        PrintJobStatus.Completed => "✅ 已完成",
+        PrintJobStatus.Failed => "❌ 失败",
+        PrintJobStatus.Cancelled => "🚫 已取消",
+        _ => "❓ 未知"
+    };
+    
+    public string StatusColor => Status switch
+    {
+        PrintJobStatus.Pending => "#FF9800",
+        PrintJobStatus.Printing => "#2196F3",
+        PrintJobStatus.Completed => "#4CAF50",
+        PrintJobStatus.Failed => "#F44336",
+        PrintJobStatus.Cancelled => "#9E9E9E",
+        _ => "#000000"
+    };
+    
+    public string CreatedAtDisplay => CreatedAt.ToString("HH:mm:ss");
+    
+    public string CostDisplay => Statistics != null 
+        ? $"¥{Statistics.EstimatedCost:F2}" 
+        : "-";
+    
+    public string PagesDisplay => Statistics != null 
+        ? $"{Statistics.TotalPages} 页" 
+        : "-";
+}
+
+public enum PrintJobStatus
+{
+    Pending = 0,
+    Printing = 1,
+    Completed = 2,
+    Failed = 3,
+    Cancelled = 4
 }
 
 public class PrintRequest

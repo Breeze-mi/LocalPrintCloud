@@ -20,6 +20,8 @@ builder.Services.AddSingleton<IPrinterService, PrinterService>();
 builder.Services.AddSingleton<IUploadService, UploadService>();
 builder.Services.AddSingleton<IJobStore, JobStore>();
 builder.Services.AddSingleton<IPrintQueueService, PrintQueueService>();
+builder.Services.AddSingleton<IPrintStatisticsService, PrintStatisticsService>();
+builder.Services.AddSingleton<IFilePreviewService, FilePreviewService>();
 
 // 配置 CORS
 builder.Services.AddCors(options =>
@@ -51,7 +53,7 @@ var printQueue = app.Services.GetRequiredService<IPrintQueueService>();
 _ = printQueue.StartProcessingAsync();
 
 Console.WriteLine("打印服务端已启动");
-Console.WriteLine($"监听地址: {builder.Configuration["Urls"] ?? "http://localhost:5000"}");
+Console.WriteLine($"监听地址: {builder.Configuration["Urls"] ?? "http://10.22.19.132:5000"}");
 Console.WriteLine($"API Key: {builder.Configuration["ApiKey"] ?? "dev-token-123"}");
 
 app.Run();

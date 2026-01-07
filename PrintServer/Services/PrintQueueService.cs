@@ -11,6 +11,10 @@ public class PrintQueueService : IPrintQueueService
     private readonly ILogger<PrintQueueService> _logger;
     private readonly IConfiguration _configuration;
     private readonly int _maxRetries;
+    private readonly bool _autoDeleteFiles;
+    private readonly string _uploadFolder;
+    private readonly int _deleteDelayMinutes;
+    private readonly Timer _cleanupTimer;
 
     public PrintQueueService(
         IPrinterService printerService,
@@ -24,6 +28,12 @@ public class PrintQueueService : IPrintQueueService
         _logger = logger;
         _configuration = configuration;
         _maxRetries = int.Parse(_configuration["MaxRetries"] ?? "3");
+        _autoDeleteFiles = bool.Parse(_configuration["AutoDeleteFiles"] ?? "true");
+        _uploadFolder = _configuration["UploadFolder"] ?? "uploads";
+        _deleteDelayMinutes = int.Parse(_configuration["DeleteDelayMinutes"] ?? "5");
+        
+        // 启动定时清理任务（每分钟检查一次）
+        _cleanupTimer = new Timer(CleanupOldFiles, null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
     }
 
     public void EnqueueJob(PrintJob job)
@@ -52,8 +62,27 @@ public class PrintQueueService : IPrintQueueService
             job.Message = "正在打印...";
             _jobStore.UpdateJob(job);
 
-            var success = await Task.Run(() => 
-                _printerService.PrintFile(job.FileId, job.PrinterName, job.Copies, job.Options));
+            bool success;
+            
+            // 支持多文件打印
+            if (job.FileIds != null && job.FileIds.Count > 0)
+            {
+                if (job.MergeFiles && job.FileIds.Count > 1)
+                {
+                    // 合并打印（按顺序打印所有文件）
+                    success = await Task.Run(() => PrintMultipleFiles(job));
+                }
+                else
+                {
+                    // 分别打印每个文件
+                    success = await Task.Run(() => PrintMultipleFiles(job));
+                }
+            }
+            else
+            {
+                // 向后兼容：单文件打印
+                success = false;
+            }
 
             if (success)
             {
@@ -61,6 +90,9 @@ public class PrintQueueService : IPrintQueueService
                 job.Message = "打印完成";
                 job.CompletedAt = DateTime.Now;
                 _logger.LogInformation($"任务完成: {job.JobId}");
+                
+                // 不立即删除，而是标记删除时间
+                // 文件将在 DeleteDelayMinutes 分钟后被定时任务删除
             }
             else
             {
@@ -74,6 +106,35 @@ public class PrintQueueService : IPrintQueueService
             _logger.LogError(ex, $"处理任务失败: {job.JobId}");
             await HandleFailureAsync(job);
             _jobStore.UpdateJob(job);
+        }
+    }
+
+    private bool PrintMultipleFiles(PrintJob job)
+    {
+        try
+        {
+            foreach (var fileId in job.FileIds)
+            {
+                _logger.LogInformation($"打印文件: {fileId}");
+                
+                var success = _printerService.PrintFile(fileId, job.PrinterName, job.Copies, job.Options);
+                
+                if (!success)
+                {
+                    _logger.LogError($"打印文件失败: {fileId}");
+                    return false;
+                }
+                
+                // 文件之间延迟 1 秒
+                Thread.Sleep(1000);
+            }
+            
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "打印多文件失败");
+            return false;
         }
     }
 
@@ -96,6 +157,71 @@ public class PrintQueueService : IPrintQueueService
             job.Status = PrintJobStatus.Failed;
             job.Message = $"打印失败，已重试 {_maxRetries} 次";
             job.CompletedAt = DateTime.Now;
+            
+            // 失败的任务也不立即删除，等待定时清理
+        }
+    }
+
+    private void CleanupOldFiles(object? state)
+    {
+        if (!_autoDeleteFiles)
+        {
+            return;
+        }
+
+        try
+        {
+            var allJobs = _jobStore.GetAllJobs();
+            var now = DateTime.Now;
+
+            foreach (var job in allJobs)
+            {
+                // 只处理已完成或失败的任务
+                if (job.Status != PrintJobStatus.Completed && job.Status != PrintJobStatus.Failed)
+                {
+                    continue;
+                }
+
+                // 检查是否超过延迟时间
+                if (job.CompletedAt.HasValue)
+                {
+                    var timeSinceCompletion = now - job.CompletedAt.Value;
+                    
+                    if (timeSinceCompletion.TotalMinutes >= _deleteDelayMinutes)
+                    {
+                        // 支持多文件删除
+                        if (job.FileIds != null && job.FileIds.Count > 0)
+                        {
+                            foreach (var fileId in job.FileIds)
+                            {
+                                DeleteFile(fileId);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "定时清理文件失败");
+        }
+    }
+
+    private void DeleteFile(string fileId)
+    {
+        try
+        {
+            var filePath = Path.Combine(_uploadFolder, Path.GetFileName(fileId));
+            
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+                _logger.LogInformation($"已删除文件: {filePath} (延迟 {_deleteDelayMinutes} 分钟后删除)");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"删除文件失败: {fileId}");
         }
     }
 }
